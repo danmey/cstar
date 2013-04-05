@@ -402,3 +402,4 @@
 .syntax_lib_file_cache
 *.out
 _build
+*.cmo
