@@ -191,7 +191,7 @@ and print_enum_items items =
     indent ();
     print_commas
       true
-      (fun (id, exp, loc) -> print id;
+      (fun (id, exp, _loc) -> print id;
 	if exp = NOTHING then ()
 	else begin
 	  space ();
@@ -277,7 +277,7 @@ and print_old_params pars ell =
 and get_operator exp =
   match exp with
     NOTHING -> ("", 16)
-  | PAREN exp -> ("", 16)
+  | PAREN _exp -> ("", 16)
   | UNARY (op, _) ->
       (match op with
 	MINUS -> ("-", 13)
@@ -290,7 +290,7 @@ and get_operator exp =
       | PREDECR -> ("--", 13)
       | POSINCR -> ("++", 14)
       | POSDECR -> ("--", 14))
-  | LABELADDR s -> ("", 16)  (* Like a constant *)
+  | LABELADDR _s -> ("", 16)  (* Like a constant *)
   | BINARY (op, _, _) ->
       (match op with
 	MUL -> ("*", 12)
@@ -327,14 +327,14 @@ and get_operator exp =
   | CALL _ -> ("", 15)
   | COMMA _ -> ("", 0)
   | CONSTANT _ -> ("", 16)
-  | VARIABLE name -> ("", 16)
-  | EXPR_SIZEOF exp -> ("", 16)
+  | VARIABLE _name -> ("", 16)
+  | EXPR_SIZEOF _exp -> ("", 16)
   | TYPE_SIZEOF _ -> ("", 16)
-  | EXPR_ALIGNOF exp -> ("", 16)
+  | EXPR_ALIGNOF _exp -> ("", 16)
   | TYPE_ALIGNOF _ -> ("", 16)
-  | INDEX (exp, idx) -> ("", 15)
-  | MEMBEROF (exp, fld) -> ("", 15)
-  | MEMBEROFPTR (exp, fld) -> ("", 15)
+  | INDEX _ -> ("", 15)
+  | MEMBEROF _ -> ("", 15)
+  | MEMBEROFPTR _ -> ("", 15)
   | GNU_BODY _ -> ("", 17)
   | EXPR_PATTERN _ -> ("", 16)     (* sm: not sure about this *)
 
@@ -373,7 +373,7 @@ and print_init_expression (iexp: init_expression) : unit =
 
 and print_expression (exp: expression) = print_expression_level 1 exp
 
-and print_expression_level (lvl: int) (exp : expression) =
+and print_expression_level (_lvl: int) (exp : expression) =
   let (txt, lvl') = get_operator exp in
   let _ = match exp with
     NOTHING -> ()
@@ -387,7 +387,7 @@ and print_expression_level (lvl: int) (exp : expression) =
 	  print txt; space (); (* Print the space to avoid --5 *)
 	  print_expression_level lvl' exp')
   | LABELADDR l -> printl ["&&";l]
-  | BINARY (op, exp1, exp2) ->
+  | BINARY (_op, exp1, exp2) ->
 			(*if (op = SUB) && (lvl <= lvl') then print "(";*)
       print_expression_level lvl' exp1;
       space ();
@@ -493,7 +493,7 @@ and print_statement stat =
       print_expression exp;
       print ";";
       new_line ()
-  | BLOCK (blk, loc) -> print_block blk
+  | BLOCK (blk, _loc) -> print_block blk
 
   | SEQUENCE (s1, s2, loc) ->
       setLoc(loc);
@@ -601,7 +601,7 @@ and print_statement stat =
       print_def d
   | ASM (tlist, details, loc) ->
       setLoc(loc);
-      let print_asm_operand (identop,cnstr, e) =
+      let print_asm_operand (_identop,cnstr, e) =
         print_string cnstr; space (); print_expression_level 100 e
       in
       if !msvcMode then begin
@@ -839,7 +839,7 @@ end
 (*  print abstrac_syntax -> ()
 **		Pretty printing the given abstract syntax program.
 *)
-let printFile (result : out_channel) ((fname, defs) : file) =
+let printFile (result : out_channel) ((_fname, defs) : file) =
   out := result;
   Whitetrack.setOutput result;
   print_defs defs;
