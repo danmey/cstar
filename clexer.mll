@@ -163,8 +163,8 @@ let init_lexicon _ =
                         INLINE loc
                       else 
                         IDENT ("_inline", loc));
-      ("__attribute__", fun loc -> ATTRIBUTE loc);
-      ("__attribute", fun loc -> ATTRIBUTE loc);
+      (* ("__attribute__", fun loc -> ATTRIBUTE loc); *)
+      (* ("__attribute", fun loc -> ATTRIBUTE loc); *)
 (*
       ("__attribute_used__", fun loc -> ATTRIBUTE_USED loc);
 *)

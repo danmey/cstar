@@ -7,34 +7,25 @@ type cabsloc = {
 }
 
 type typeSpecifier = (* Merge all specifiers into one type *)
-  | Tvoid                             (* Type specifier ISO 6.7.2 *)
-  | Tchar
-  | Tbool
-  | Tshort
-  | Tint
-  | Tlong
-  | Tint64
-  | Tfloat
-  | Tdouble
-  | Tsigned
-  | Tunsigned
+  | Tvoid | Tchar  | Tbool  | Tshort | Tint  | Tlong  | Tint64
+  | Tfloat  | Tdouble  | Tsigned  | Tunsigned
   | Tnamed of string
   (* each of the following three kinds of specifiers contains a field 
    * or item list iff it corresponds to a definition (as opposed to
    * a forward declaration or simple reference to the type); they
    * also have a list of __attribute__s that appeared between the
    * keyword and the type name (definitions only) *)
-  | Tstruct of string * field_group list option * attribute list
-  | Tunion of string * field_group list option * attribute list
-  | Tenum of string * enum_item list option * attribute list
-  | TtypeofE of expression                      (* GCC __typeof__ *)
-  | TtypeofT of specifier * decl_type       (* GCC __typeof__ *)
+  | Tstruct of string * field_group list option (* * attribute list *)
+  | Tunion of string * field_group list option (* * attribute list *)
+  | Tenum of string * enum_item list option (* * attribute list *)
+  (* | TtypeofE of expression                      (\* GCC __typeof__ *\) *)
+  (* | TtypeofT of specifier * decl_type       (\* GCC __typeof__ *\) *)
 
 and storage =
     NO_STORAGE | AUTO | STATIC | EXTERN | REGISTER
 
-and funspec = 
-    INLINE | VIRTUAL | EXPLICIT
+(* and funspec =  *)
+(*     INLINE | VIRTUAL | EXPLICIT *)
 
 and cvspec =
     CV_CONST | CV_VOLATILE | CV_RESTRICT
@@ -47,7 +38,7 @@ and cvspec =
 and spec_elem =
     SpecTypedef          
   | SpecCV of cvspec            (* const/volatile *)
-  | SpecAttr of attribute       (* __attribute__ *)
+  (* | SpecAttr of attribute       (\* __attribute__ *\) *)
   | SpecStorage of storage
   | SpecInline
   | SpecType of typeSpecifier
@@ -63,7 +54,7 @@ and specifier = spec_elem list
  * declared type) *)
 and decl_type =
  | JUSTBASE                               (* Prints the declared name *)
- | PARENTYPE of attribute list * decl_type * attribute list
+ | PARENTYPE of (* attribute list * *) decl_type (* * attribute list *)
                                           (* Prints "(attrs1 decl attrs2)".
                                            * attrs2 are attributes of the
                                            * declared identifier and it is as
@@ -72,10 +63,10 @@ and decl_type =
                                            * contain attributes for the
                                            * identifier or attributes for the
                                            * enclosing type.  *)
- | ARRAY of decl_type * attribute list * expression
+ | ARRAY of decl_type (* * attribute list *) * expression
                                           (* Prints "decl [ attrs exp ]".
                                            * decl is never a PTR. *)
- | PTR of attribute list * decl_type      (* Prints "* attrs decl" *)
+ | PTR of (* attribute list *  *)decl_type      (* Prints "* attrs decl" *)
  | PROTO of decl_type * single_name list * bool 
                                           (* Prints "decl (args[, ...])".
                                            * decl is never a PTR.*)
@@ -97,7 +88,7 @@ and init_name_group = specifier * init_name list
  * printed after the declarator *)
 (* e.g: in "int *x", "*x" is the declarator; "x" will be pulled out as *)
 (* the string, and decl_type will be PTR([], JUSTBASE) *)
-and name = string * decl_type * attribute list * cabsloc
+and name = string * decl_type (* * attribute list *) * cabsloc
 
 (* A variable declarator ("name") with an initializer *)
 and init_name = name * init_expression
@@ -139,7 +130,7 @@ and file = string * definition list
  * l1, l2; ... }) ) , a list of definitions and a list of statements  *)
 and block = 
     { blabels: string list;
-      battrs: attribute list;
+      (* battrs: attribute list; *)
       bstmts: statement list
     } 
 
@@ -171,7 +162,7 @@ and statement =
  | COMPGOTO of expression * cabsloc (* GCC's "goto *exp" *)
  | DEFINITION of definition (*definition or declaration of a variable or type*)
 
- | ASM of attribute list * (* typically only volatile and const *)
+ | ASM of (* attribute list * *) (* typically only volatile and const *)
           string list * (* template *)
           asm_details option * (* extra details to guide GCC's optimizer *)
           cabsloc
@@ -255,6 +246,6 @@ and initwhat =
 
                                         (* Each attribute has a name and some
                                          * optional arguments *)
-and attribute = string * expression list
+(* and attribute = string * expression list *)
                                               
 

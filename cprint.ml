@@ -100,7 +100,7 @@ let rec print_specifiers (specs: spec_elem list) =
         | CV_CONST -> "const"
         | CV_VOLATILE -> "volatile"
         | CV_RESTRICT -> "restrict")
-    | SpecAttr al -> print_attribute al; space ()
+    (* | SpecAttr al -> print_attribute al; space () *)
     | SpecType bt -> print_type_spec bt
     | SpecPattern name -> printl ["@specifier";"(";name;")"]
   in
@@ -121,34 +121,27 @@ and print_type_spec = function
   | Tsigned -> printu "signed"
   | Tunsigned -> print "unsigned "
   | Tnamed s -> comprint "tnamed"; print s; space ();
-  | Tstruct (n, None, _) -> printl ["struct";n]
-  | Tstruct (n, Some flds, extraAttrs) ->
-      (print_struct_name_attr "struct" n extraAttrs);
+  | Tstruct (n, None ) -> printl ["struct";n]
+  | Tstruct (n, Some flds) ->
+      (print_struct_name "struct" n );
       (print_fields flds)
-  | Tunion (n, None, _) -> printl ["union";n;" "]
-  | Tunion (n, Some flds, extraAttrs) ->
-      (print_struct_name_attr "union" n extraAttrs);
+  | Tunion (n, None) -> printl ["union";n;" "]
+  | Tunion (n, Some flds) ->
+      (print_struct_name "union" n );
       (print_fields flds)
-  | Tenum (n, None, _) -> printl ["enum";n]
-  | Tenum (n, Some enum_items, extraAttrs) ->
-      (print_struct_name_attr "enum" n extraAttrs);
+  | Tenum (n, None) -> printl ["enum";n]
+  | Tenum (n, Some enum_items) ->
+      (print_struct_name "enum" n );
       (print_enum_items enum_items)
-  | TtypeofE e -> printl ["__typeof__";"("]; print_expression e; print ") "
-  | TtypeofT (s,d) -> printl ["__typeof__";"("]; print_onlytype (s, d); print ") "
+  (* | TtypeofE e -> printl ["__typeof__";"("]; print_expression e; print ") " *)
+  (* | TtypeofT (s,d) -> printl ["__typeof__";"("]; print_onlytype (s, d); print ") " *)
 
 
 (* print "struct foo", but with specified keyword and a list of
  * attributes to put between keyword and name *)
-and print_struct_name_attr (keyword: string) (name: string) (extraAttrs: attribute list) =
-begin
-  if extraAttrs = [] then
+and print_struct_name (keyword: string) (name: string) =
     printl [keyword;name]
-  else begin
-    print keyword;
-    print_attributes extraAttrs;    (* prints a final space *)
-    print name;
-  end
-end
+
 
 
 (* This is the main printer for declarations. It is easy bacause the 
@@ -158,19 +151,16 @@ and print_decl (n: string) = function
                   print n
                 else
                   comprint "missing field name"
-  | PARENTYPE (al1, d, al2) ->
+  | PARENTYPE d  ->
       print "(";
-      print_attributes al1; space ();
       print_decl n d; space ();
-      print_attributes al2; print ")"
-  | PTR (al, d) ->
+      print ")"
+  | PTR  d ->
       print "* ";
-      print_attributes al; space ();
       print_decl n d
-  | ARRAY (d, al, e) ->
+  | ARRAY (d, e) ->
       print_decl n d;
       print "[";
-      print_attributes al;
       if e <> NOTHING then print_expression e;
       print "]"
   | PROTO(d, args, isva) ->
@@ -218,10 +208,10 @@ and print_onlytype (specs, dt) =
   print_specifiers specs;
   print_decl "" dt
     
-and print_name ((n, decl, attrs, _) : name) =
+and print_name ((n, decl,  _) : name) =
   print_decl n decl;
-  space ();
-  print_attributes attrs
+  (* space (); *)
+  (* print_attributes attrs *)
 
 and print_init_name ((n, i) : init_name) =
   print_name n;
@@ -609,7 +599,7 @@ and print_statement stat =
       print ("goto *"); print_expression exp; print ";"; new_line ()
   | DEFINITION d ->
       print_def d
-  | ASM (attrs, tlist, details, loc) ->
+  | ASM (tlist, details, loc) ->
       setLoc(loc);
       let print_asm_operand (identop,cnstr, e) =
         print_string cnstr; space (); print_expression_level 100 e
@@ -620,7 +610,7 @@ and print_statement stat =
         print "};"
       end else begin
         print "__asm__ "; 
-        print_attributes attrs;
+        (* print_attributes attrs; *)
         print "(";
         print_list (fun () -> new_line()) print_string tlist; (* templates *)
 	begin
@@ -665,10 +655,10 @@ and print_block blk =
     print ";";
     new_line ();
   end;
-  if blk.battrs <> [] then begin
-    List.iter print_attribute blk.battrs;
-    new_line ();
-  end;
+  (* if blk.battrs <> [] then begin *)
+  (*   List.iter print_attribute blk.battrs; *)
+  (*   new_line (); *)
+  (* end; *)
   List.iter print_statement blk.bstmts;
   unindent ();
   print "}";
@@ -736,10 +726,10 @@ and print_def def =
         try
           let fname =
             match proto with
-              (_, (n, _, _, _)) -> n
+              (_, (n, _,  _)) -> n
           in
           print_def (DECDEF (([SpecType Tint],
-                              [(fname ^ "__counter", JUSTBASE, [], cabslu),
+                              [(fname ^ "__counter", JUSTBASE, cabslu),
                                 NO_INIT]), loc));
         with Not_found -> print "/* can't print the counter */"
       end;

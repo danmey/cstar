@@ -43,7 +43,7 @@ let smooth_expression lst =
 
 let currentFunctionName = ref "<outside any function>"
     
-let announceFunctionName ((n, decl, _, _):name) =
+let announceFunctionName ((n, decl,  _):name) =
   !Lexerhack.add_identifier n;
   (* Start a context that includes the parameter names and the whole body. 
    * Will pop when we finish parsing the function body *)
@@ -51,18 +51,18 @@ let announceFunctionName ((n, decl, _, _):name) =
   (* Go through all the parameter names and mark them as identifiers *)
   let rec findProto = function
       PROTO (d, args, _) when isJUSTBASE d -> 
-        List.iter (fun (_, (an, _, _, _)) -> !Lexerhack.add_identifier an) args
+        List.iter (fun (_, (an, _, _)) -> !Lexerhack.add_identifier an) args
 
     | PROTO (d, _, _) -> findProto d
-    | PARENTYPE (_, d, _) -> findProto d
-    | PTR (_, d) -> findProto d
-    | ARRAY (d, _, _) -> findProto d
+    | PARENTYPE ( d) -> findProto d
+    | PTR  d -> findProto d
+    | ARRAY (d, _) -> findProto d
     | _ -> parse_error "Cannot find the prototype in a function definition";
            raise Parsing.Parse_error 
 
   and isJUSTBASE = function
       JUSTBASE -> true
-    | PARENTYPE (_, d, _) -> isJUSTBASE d
+    | PARENTYPE ( d) -> isJUSTBASE d
     | _ -> false
   in
   findProto decl;
@@ -70,14 +70,14 @@ let announceFunctionName ((n, decl, _, _):name) =
 
 
 
-let applyPointer (ptspecs: attribute list list) (dt: decl_type)  
-       : decl_type = 
-  (* Outer specification first *)
-  let rec loop = function
-      [] -> dt
-    | attrs :: rest -> PTR(attrs, loop rest)
-  in
-  loop ptspecs
+(* let applyPointer (ptspecs: attribute list list) (dt: decl_type)   *)
+(*        : decl_type =  *)
+(*   (\* Outer specification first *\) *)
+(*   let rec loop = function *)
+(*       [] -> dt *)
+(*     | attrs :: rest -> PTR(attrs, loop rest) *)
+(*   in *)
+(*   loop ptspecs *)
 
 let doDeclaration (loc: cabsloc) (specs: spec_elem list) (nl: init_name list) : definition = 
   if isTypedef specs then begin
@@ -910,7 +910,7 @@ decl_spec_list:                         /* ISO 6.7 */
                                         /* ISO 6.7.4 */
 |   INLINE decl_spec_list_opt           { SpecInline :: $2, $1 }
 |   cvspec decl_spec_list_opt           { (fst $1) :: $2, snd $1 }
-|   attribute_nocv decl_spec_list_opt   { SpecAttr (fst $1) :: $2, snd $1 }
+/* |   attribute_nocv decl_spec_list_opt   { SpecAttr (fst $1) :: $2, snd $1 } */
 /* specifier pattern variable (must be last in spec list) */
 |   AT_SPECIFIER LPAREN IDENT RPAREN    { [ SpecPattern(fst $3) ], $1 }
 ;
@@ -973,9 +973,9 @@ type_spec:   /* ISO 6.7.2 */
 |   ENUM   just_attributes                LBRACE enum_list maybecomma RBRACE
                                                    { Tenum   ("", Some $4, $2), $1 }
 |   NAMED_TYPE      { Tnamed (fst $1), snd $1 }
-|   TYPEOF LPAREN expression RPAREN     { TtypeofE (fst $3), $1 }
-|   TYPEOF LPAREN type_name RPAREN      { let s, d = $3 in
-                                          TtypeofT (s, d), $1 }
+/* |   TYPEOF LPAREN expression RPAREN     { TtypeofE (fst $3), $1 } */
+/* |   TYPEOF LPAREN type_name RPAREN      { let s, d = $3 in 
+                                           TtypeofT (s, d), $1 } */
 ;
 struct_decl_list: /* (* ISO 6.7.2. Except that we allow empty structs. We 
                       * also allow missing field names. *)
@@ -1241,20 +1241,15 @@ cvspec:
 |   RESTRICT                            { SpecCV(CV_RESTRICT), $1 }
 ;
 
-/*** GCC attributes ***/
-attributes:
-    /* empty */				{ []}
-|   attribute attributes	        { fst $1 :: $2 }
-;
-
+  
 /* (* In some contexts we can have an inline assembly to specify the name to 
     * be used for a global. We treat this as a name attribute *) */
 attributes_with_asm:
     /* empty */                         { [] }
-|   attribute attributes_with_asm       { fst $1 :: $2 }
-|   ASM LPAREN string_constant RPAREN attributes        
+/* |   attribute attributes_with_asm       { fst $1 :: $2 } */
+|   ASM LPAREN string_constant RPAREN
                                         { ("__asm__", 
-					   [CONSTANT(CONST_STRING (fst $3))]) :: $5 }
+					   [CONSTANT(CONST_STRING (fst $3))]) (* :: $5 *) }
 ;
 
 /* things like __attribute__, but no const/volatile */
